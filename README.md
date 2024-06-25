@@ -81,7 +81,7 @@ This solution was developed thanks to these announcements:
         6. Install dependencies.
 
                cd contacts-manager
-               sh prereq.sh
+               sh -e requirements.txt
     </details>
 
 2. Run the script.
