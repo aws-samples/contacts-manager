@@ -44,7 +44,7 @@ This solution was developed thanks to these announcements:
 
     </details>
 
-    - <details><summary>Local terminal (recommended if you will run the [Generate contacts report](https://github.com/aws-samples/contacts-manager/#:~:text=Root%20email%20addresses-,Generate,-contacts%20report))</summary><br>
+    - <details><summary>Local terminal (recommended if you will run the Generate contacts report)</summary><br>
 
         1. Open you local terminal.
         2. Make sure to have AWS CLI and Python3 installed.
