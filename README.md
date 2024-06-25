@@ -80,7 +80,7 @@ This solution was developed thanks to these announcements:
 
         6. Install dependencies.
 
-               cd <aws-contacts-manager-folder>
+               cd contacts-manager
                sh prereq.sh
     </details>
 
