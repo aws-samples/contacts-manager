@@ -30,17 +30,17 @@ This solution was developed thanks to these announcements:
         3. When CloudShell opens, you will run the following command:
             1. Clone the repository.
 
-                    git clone https://github.com/aws-samples/contacts-manager.git
+                   git clone https://github.com/aws-samples/contacts-manager.git
 
             2. Make a clean install.
 
-                    python3 -m venv .venv
-                    source .venv/bin/activate
+                   python3 -m venv .venv
+                   source .venv/bin/activate
 
             3. Install dependencies.
 
-                    cd contacts-manager
-                    sh -e requirements.txt
+                   cd contacts-manager
+                   sh -e requirements.txt
 
     </details>
 
@@ -50,15 +50,15 @@ This solution was developed thanks to these announcements:
         2. Make sure to have AWS CLI and Python3 installed.
             -  Checking AWS CLI version ([latest version](https://raw.githubusercontent.com/aws/aws-cli/v2/CHANGELOG.rst)).
 
-                    aws --version
+                   aws --version
 
             - Checking Python version
 
-                    python -V
+                  python -V
 
                 or
 
-                    python3 -V
+                  python3 -V
 
         3. Sign-in to you AWS account in the local terminal.
             - We recommed to use the credentials from AWS Identity Center (SSO).
@@ -67,26 +67,26 @@ This solution was developed thanks to these announcements:
 
             - You can run the following command to check your credentials.
 
-                    aws sts get-caller-identity
+                  aws sts get-caller-identity
 
         4. Clone the repository.
 
-                 git clone https://github.com/aws-samples/contacts-manager.git
+               git clone https://github.com/aws-samples/contacts-manager.git
 
         5. Make a clean install.
 
-                python3 -m venv .venv
-                .venv/bin/activate
+               python3 -m venv .venv
+               .venv/bin/activate
 
         6. Install dependencies.
 
-                cd <aws-contacts-manager-folder>
-                sh prereq.sh
+               cd <aws-contacts-manager-folder>
+               sh prereq.sh
     </details>
 
 2. Run the script.
 
-        python3 script.py
+       python3 script.py
 
 3. The first step is to choose which contact options you want to interact.
 
@@ -205,7 +205,9 @@ This solution was developed thanks to these announcements:
 
             ![img](/media/root-email-addresses-5.png)
 
-        3. abc
+        3. Once you update the root email address, the status will be changed to "✔" (done). When all statuses are “checked”, the function will be completed.
+     
+            ![img](/media/root-email-addresses-6.png)
 
 </details>
 
@@ -220,8 +222,8 @@ This solution was developed thanks to these announcements:
 
 4. _[Optional]_ Remove the tool.
 
-        cd ..
-        rm aws-contacts-manager
+       cd ..
+       rm aws-contacts-manager
 
 ## Feedback
 
