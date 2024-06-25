@@ -39,7 +39,7 @@ This solution was developed thanks to these announcements:
 
             3. Install dependencies.
 
-                    cd <aws-contacts-manager-folder>
+                    cd contacts-manager
                     sh -e requirements.txt
 
     </details>
