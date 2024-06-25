@@ -1,0 +1,9 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+#!/bin/sh
+
+python3 -m pip install openpyxl
+python3 -m pip install pandas
+python3 -m pip install DateTime
+python3 -m pip install simple-term-menu
+python3 -m pip install boto3

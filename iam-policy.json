@@ -1,0 +1,22 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Sid": "PermissionsForAWSContactsManager",
+			"Effect": "Allow",
+			"Action": [
+				"account:GetAlternateContact",
+				"account:GetContactInformation",
+				"account:GetPrimaryEmail",
+				"account:AcceptPrimaryEmailUpdate",
+				"account:DeleteAlternateContact",
+				"account:PutAlternateContact",
+				"account:PutContactInformation",
+				"organizations:ListAccounts",
+				"organizations:ListAccountsForParent",
+                "s3:PutObject"
+			],
+			"Resource": "*"
+		}
+	]
+}
