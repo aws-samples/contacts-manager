@@ -71,7 +71,7 @@ This solution was developed thanks to these announcements:
 
         4. Clone the repository.
 
-                git clone <repo-url>
+                 git clone https://github.com/aws-samples/contacts-manager.git
 
         5. Make a clean install.
 
