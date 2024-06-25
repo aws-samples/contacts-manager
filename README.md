@@ -76,7 +76,7 @@ This solution was developed thanks to these announcements:
         5. Make a clean install.
 
                python3 -m venv .venv
-               .venv/bin/activate
+               source .venv/bin/activate
 
         6. Install dependencies.
 
