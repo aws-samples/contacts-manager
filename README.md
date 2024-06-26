@@ -30,7 +30,7 @@ This solution was developed thanks to these announcements:
         3. When CloudShell opens, you will run the following command:
             1. Clone the repository.
 
-                    git clone <repo-url>
+                    git clone https://github.com/aws-samples/contacts-manager.git
 
             2. Make a clean install.
 
@@ -39,12 +39,12 @@ This solution was developed thanks to these announcements:
 
             3. Install dependencies.
 
-                    cd <aws-contacts-manager-folder>
+                    cd contacts-manager
                     sh -e requirements.txt
 
     </details>
 
-    - <details><summary>Local terminal (recommended if you will run the [Generate contacts report]())</summary><br>
+    - <details><summary>Local terminal (recommended if you will run the Generate contacts report)</summary><br>
 
         1. Open you local terminal.
         2. Make sure to have AWS CLI and Python3 installed.
@@ -60,7 +60,21 @@ This solution was developed thanks to these announcements:
 
                     python3 -V
 
-        3. Sign-in to you AWS account in the local terminal.
+        3. Clone the repository.
+
+                git clone https://github.com/aws-samples/contacts-manager.git
+
+        4. Make a clean install.
+
+                python3 -m venv .venv
+                .venv/bin/activate
+
+        5. Install dependencies.
+
+                cd contacts-manager
+                sh -e requirements.txt
+
+        6. Sign-in to you AWS account in the local terminal.
             - We recommed to use the credentials from AWS Identity Center (SSO).
 
                 ![img](media/identity-center.png)
@@ -68,20 +82,6 @@ This solution was developed thanks to these announcements:
             - You can run the following command to check your credentials.
 
                     aws sts get-caller-identity
-
-        4. Clone the repository.
-
-                git clone <repo-url>
-
-        5. Make a clean install.
-
-                python3 -m venv .venv
-                .venv/bin/activate
-
-        6. Install dependencies.
-
-                cd <aws-contacts-manager-folder>
-                sh prereq.sh
     </details>
 
 2. Run the script.
@@ -214,7 +214,7 @@ This solution was developed thanks to these announcements:
 - <details><summary>Generate contacts report</summary><br>
 
     - When selected, the tool will generate a report with all contacts from all Organizations accounts.<br> 
-    **Note:** it will take an averge of 4s per account.
+    **Note:** it will take an average of 4s per account.
 
         ![img](/media/generate-contacts-report.png)
 
