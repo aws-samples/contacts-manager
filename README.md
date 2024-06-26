@@ -9,6 +9,14 @@ This solution was developed thanks to these announcements:
 - _Posted on: Oct 25, 2022_ - [AWS Organizations console now allows users to centrally manage primary contact information on AWS accounts](https://aws.amazon.com/about-aws/whats-new/2022/10/aws-organizations-console-centrally-manage-primary-contact-information-aws-accounts/)
 - _Posted on: Feb 09, 2022_ - [AWS Organizations console now lets users centrally manage alternate contacts on AWS accounts](https://aws.amazon.com/about-aws/whats-new/2022/02/aws-organizations-console-manage-alternate-contacts/)
 
+**Why this solution was created?**
+
+Keeping your contacts updated in your AWS accounts is important for compliance and ensuring that notifications sent by AWS are being sent to the correct recipients. There are 3 main types of contacts to be registered in an AWS account: primary contacts, alternate contacts and the email address of the account's root user.
+
+Alternate contacts for an AWS account allow AWS to contact up to three additional points of contact associated with the account for billing, operations, and security issues. They are in addition to the primary email address associated with the AWS account (root user email). Ensuring they are up to date and properly configured is part of managing a mature AWS environment.
+
+Customers with large numbers of AWS accounts struggle to ensure that these contacts are set correctly and not altered. This solution aims to resolve this with automation for managing these different types of contacts in bulk.
+
 ## Prerequisites
 
 - Your organization must enable all features to manage settings on your member accounts. This allows admin control over the member accounts. This is set by default when you create your organization. If your organization is set to consolidated billing only, and you want to enable all features, see [Enabling all features in your organization](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html).
