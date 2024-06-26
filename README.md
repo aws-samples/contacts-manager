@@ -30,35 +30,35 @@ This solution was developed thanks to these announcements:
         3. When CloudShell opens, you will run the following command:
             1. Clone the repository.
 
-                   git clone https://github.com/aws-samples/contacts-manager.git
+                    git clone <repo-url>
 
             2. Make a clean install.
 
-                   python3 -m venv .venv
-                   source .venv/bin/activate
+                    python3 -m venv .venv
+                    source .venv/bin/activate
 
             3. Install dependencies.
 
-                   cd contacts-manager
-                   sh -e requirements.txt
+                    cd <aws-contacts-manager-folder>
+                    sh -e requirements.txt
 
     </details>
 
-    - <details><summary>Local terminal (recommended if you will run the Generate contacts report)</summary><br>
+    - <details><summary>Local terminal (recommended if you will run the [Generate contacts report]())</summary><br>
 
         1. Open you local terminal.
         2. Make sure to have AWS CLI and Python3 installed.
             -  Checking AWS CLI version ([latest version](https://raw.githubusercontent.com/aws/aws-cli/v2/CHANGELOG.rst)).
 
-                   aws --version
+                    aws --version
 
             - Checking Python version
 
-                  python -V
+                    python -V
 
                 or
 
-                  python3 -V
+                    python3 -V
 
         3. Sign-in to you AWS account in the local terminal.
             - We recommed to use the credentials from AWS Identity Center (SSO).
@@ -67,26 +67,26 @@ This solution was developed thanks to these announcements:
 
             - You can run the following command to check your credentials.
 
-                  aws sts get-caller-identity
+                    aws sts get-caller-identity
 
         4. Clone the repository.
 
-               git clone https://github.com/aws-samples/contacts-manager.git
+                git clone <repo-url>
 
         5. Make a clean install.
 
-               python3 -m venv .venv
-               source .venv/bin/activate
+                python3 -m venv .venv
+                .venv/bin/activate
 
         6. Install dependencies.
 
-               cd contacts-manager
-               sh -e requirements.txt
+                cd <aws-contacts-manager-folder>
+                sh prereq.sh
     </details>
 
 2. Run the script.
 
-       python3 script.py
+        python3 script.py
 
 3. The first step is to choose which contact options you want to interact.
 
@@ -96,7 +96,7 @@ This solution was developed thanks to these announcements:
 
     1. When selected, choose one of the 3 action options.
 
-        ![img](/media/alternate-contacts.png)
+        ![img](/media/alternate-contacts-1.png)
 
     2. Input a list of AWS account IDs separated by comma, the Organization unit ID or all. For the Delete action, for security reasons, it is only allowed to run one AWS account ID at a time. Below are some input examples:
 
@@ -143,7 +143,7 @@ This solution was developed thanks to these announcements:
 
     1. When selected, choose one of the 2 action options
 
-        ![img](/media/primary-contacts.png)
+        ![img](/media/primary-contacts-1.png)
 
     2. Input a list of AWS account IDs separated by comma, the Organization unit ID or all. For the Delete action, for security reasons, it is only allowed to run one AWS account ID at a time. Below are some input examples:
 
@@ -157,17 +157,17 @@ This solution was developed thanks to these announcements:
 
         1. For List action, there is the option to export the result to an s3 bucket.
 
-            ![img](/media/primary-contacts-3.png)
+            ![img](/media/primary-contacts-2.png)
 
         2. Inputting "y" will ask for the name of an S3 bucket to upload. Inputting "n", the result will return on the CloudShell or local terminal screen.
 
-            ![img](/media/primary-contacts-4.png)
+            ![img](/media/primary-contacts-3.png)
 
     - Update action
 
         1. For Update action, it will be required to fill in all the contact fields, you must pay attention to the right pattern.
 
-            ![img](/media/primary-contacts-2.png)
+            ![img](/media/primary-contacts-4.png)
 
 </details>
 
@@ -175,7 +175,7 @@ This solution was developed thanks to these announcements:
 
     1. When selected, choose one of the 2 action options
 
-        ![img](/media/root-email-addresses.png)
+        ![img](/media/root-email-addresses-1.png)
 
     2. Input a list of AWS account IDs separated by comma, the Organization unit ID or all. For the Delete action, for security reasons, it is only allowed to run one AWS account ID at a time. Below are some input examples:
 
@@ -189,24 +189,24 @@ This solution was developed thanks to these announcements:
 
         1. For List action, there is the option to export the result to an s3 bucket.
 
-            ![img](/media/root-email-addresses-3.png)
+            ![img](/media/root-email-addresses-2.png)
 
         2. Inputting "y" will ask for the name of an S3 bucket to upload. Inputting "n", the result will return on the CloudShell or local terminal screen.
 
-            ![img](/media/root-email-addresses-4.png)
+            ![img](/media/root-email-addresses-3.png)
 
     - Update action
 
         1. For Update action, it will be required to fill in all the contact fields. A status prefix of "⟳" (pending) and "✔" (done) will be shown to monitor the status of AWS account changes.
 
-            ![img](/media/root-email-addresses-2.png)
+            ![img](/media/root-email-addresses-4.png)
 
         2. When you select an account, you must add the OTP (One-Time Password). This must be done one account at a time.
 
             ![img](/media/root-email-addresses-5.png)
 
         3. Once you update the root email address, the status will be changed to "✔" (done). When all statuses are “checked”, the function will be completed.
-     
+
             ![img](/media/root-email-addresses-6.png)
 
 </details>
@@ -222,8 +222,8 @@ This solution was developed thanks to these announcements:
 
 4. _[Optional]_ Remove the tool.
 
-       cd ..
-       rm aws-contacts-manager
+        cd ..
+        rm aws-contacts-manager
 
 ## Feedback
 
