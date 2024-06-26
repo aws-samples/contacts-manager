@@ -15,7 +15,7 @@ Keeping your contacts updated in your AWS accounts is important for compliance a
 
 Alternate contacts for an AWS account allow AWS to contact up to three additional points of contact associated with the account for billing, operations, and security issues. They are in addition to the primary email address associated with the AWS account (root user email). Ensuring they are up to date and properly configured is part of managing a mature AWS environment.
 
-Customers with large numbers of AWS accounts struggle to ensure that these contacts are set correctly and not altered. This solution aims to resolve this with automation for managing these different types of contacts in bulk.
+Customers with large numbers of AWS accounts have the challenge to ensure that these contacts are set correctly and not altered. This solution aims to resolve this with automation for managing these different types of contacts in bulk.
 
 ## Prerequisites
 
