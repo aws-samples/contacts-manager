@@ -75,7 +75,7 @@ Customers with large numbers of AWS accounts have the challenge to ensure that t
         4. Make a clean install.
 
                 python3 -m venv .venv
-                .venv/bin/activate
+                source .venv/bin/activate
 
         5. Install dependencies.
 
