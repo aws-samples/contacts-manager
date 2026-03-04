@@ -251,7 +251,7 @@ The CloudFormation template (`cfn.yml`) deploys a serverless automation solution
 └──────────────────────────────────────┬─────────────────────────────────┘
                                        │
                                        ▼
-                        ┌──────────────────────────┐
+                        ┌───────────────────────────┐
                         │   AWS Organizations API   │
                         └──────────────┬────────────┘
                                        │
