@@ -1,0 +1,353 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Automation for updating alternate contacts across AWS Organization accounts'
+
+Parameters:
+  # Operations Contact
+  OperationsName:
+    Type: String
+    Description: Operations contact name
+    Default: 'Operations Team'
+  
+  OperationsTitle:
+    Type: String
+    Description: Operations contact title
+    Default: 'Cloud Operations'
+  
+  OperationsEmail:
+    Type: String
+    Description: Operations contact email address
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    ConstraintDescription: Must be a valid email address
+  
+  OperationsPhone:
+    Type: String
+    Description: 'Operations contact phone number in international format (e.g., +447911123456 for UK, +12025551234 for US). Must start with + followed by country code and number with no spaces or special characters. Remove leading zeros after country code.'
+    AllowedPattern: '^\+[1-9][0-9]{7,14}$'
+    ConstraintDescription: 'Must be in international format: + followed by country code and 7-14 digits with no spaces or special characters (e.g., +447911123456)'
+  
+  # Billing Contact
+  BillingName:
+    Type: String
+    Description: Billing contact name
+    Default: 'Billing Team'
+  
+  BillingTitle:
+    Type: String
+    Description: Billing contact title
+    Default: 'Finance & Billing'
+  
+  BillingEmail:
+    Type: String
+    Description: Billing contact email address
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    ConstraintDescription: Must be a valid email address
+  
+  BillingPhone:
+    Type: String
+    Description: 'Billing contact phone number in international format (e.g., +447911123456 for UK, +12025551234 for US). Must start with + followed by country code and number with no spaces or special characters. Remove leading zeros after country code.'
+    AllowedPattern: '^\+[1-9][0-9]{7,14}$'
+    ConstraintDescription: 'Must be in international format: + followed by country code and 7-14 digits with no spaces or special characters (e.g., +447911123456)'
+  
+  # Security Contact
+  SecurityName:
+    Type: String
+    Description: Security contact name
+    Default: 'Security Team'
+  
+  SecurityTitle:
+    Type: String
+    Description: Security contact title
+    Default: 'Information Security'
+  
+  SecurityEmail:
+    Type: String
+    Description: Security contact email address
+    AllowedPattern: '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    ConstraintDescription: Must be a valid email address
+  
+  SecurityPhone:
+    Type: String
+    Description: 'Security contact phone number in international format (e.g., +447911123456 for UK, +12025551234 for US). Must start with + followed by country code and number with no spaces or special characters. Remove leading zeros after country code.'
+    AllowedPattern: '^\+[1-9][0-9]{7,14}$'
+    ConstraintDescription: 'Must be in international format: + followed by country code and 7-14 digits with no spaces or special characters (e.g., +447911123456)'
+  
+  # Schedule Configuration
+  ScheduleExpression:
+    Type: String
+    Description: Cron or rate expression for execution frequency
+    Default: 'rate(7 days)'
+    AllowedPattern: '^(rate\((1 (day|hour|minute)|([2-9]|[1-9][0-9]+) (days|hours|minutes))\)|cron\(.+\))$'
+    ConstraintDescription: 'Must be a valid rate() or cron() expression. Examples: rate(7 days), rate(1 hour), cron(0 12 * * ? *)'
+
+Resources:
+  # IAM Role for Lambda
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-LambdaRole'
+      Description: 'Managed by CloudFormation. Do not modify directly to avoid configuration drift.'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: OrganizationsAndAccountAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - organizations:ListAccounts
+                  - organizations:DescribeOrganization
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - account:PutAlternateContact
+                  - account:GetAlternateContact
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - sts:GetCallerIdentity
+                Resource: '*'
+
+  # Lambda Function
+  AlternateContactsFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-UpdateContacts'
+      Description: 'Updates alternate contacts for all Organization accounts. Managed by CloudFormation - do not modify directly to avoid configuration drift.'
+      Runtime: python3.12
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 300
+      MemorySize: 256
+      Environment:
+        Variables:
+          OPERATIONS_NAME: !Ref OperationsName
+          OPERATIONS_TITLE: !Ref OperationsTitle
+          OPERATIONS_EMAIL: !Ref OperationsEmail
+          OPERATIONS_PHONE: !Ref OperationsPhone
+          BILLING_NAME: !Ref BillingName
+          BILLING_TITLE: !Ref BillingTitle
+          BILLING_EMAIL: !Ref BillingEmail
+          BILLING_PHONE: !Ref BillingPhone
+          SECURITY_NAME: !Ref SecurityName
+          SECURITY_TITLE: !Ref SecurityTitle
+          SECURITY_EMAIL: !Ref SecurityEmail
+          SECURITY_PHONE: !Ref SecurityPhone
+      Code:
+        ZipFile: |
+          import boto3
+          import botocore.exceptions
+          import os
+          from typing import List, Dict, Optional
+          
+          def get_contacts_from_env():
+              """Get contact configurations from environment variables."""
+              return [
+                  {
+                      'Name': os.environ['OPERATIONS_NAME'],
+                      'Title': os.environ['OPERATIONS_TITLE'],
+                      'EmailAddress': os.environ['OPERATIONS_EMAIL'],
+                      'PhoneNumber': os.environ['OPERATIONS_PHONE'],
+                      'AlternateContactType': 'OPERATIONS'
+                  },
+                  {
+                      'Name': os.environ['BILLING_NAME'],
+                      'Title': os.environ['BILLING_TITLE'],
+                      'EmailAddress': os.environ['BILLING_EMAIL'],
+                      'PhoneNumber': os.environ['BILLING_PHONE'],
+                      'AlternateContactType': 'BILLING'
+                  },
+                  {
+                      'Name': os.environ['SECURITY_NAME'],
+                      'Title': os.environ['SECURITY_TITLE'],
+                      'EmailAddress': os.environ['SECURITY_EMAIL'],
+                      'PhoneNumber': os.environ['SECURITY_PHONE'],
+                      'AlternateContactType': 'SECURITY'
+                  }
+              ]
+          
+          def list_org_accounts(org_client):
+              """List all accounts in the organization."""
+              try:
+                  paginator = org_client.get_paginator('list_accounts')
+                  return [
+                      account 
+                      for page in paginator.paginate() 
+                      for account in page['Accounts']
+                  ]
+              except Exception as e:
+                  print(f"Error listing accounts: {e}")
+                  return None
+          
+          def update_alternate_contact(account_client, account_id, current_account_id, contacts):
+              """Update all alternate contacts for a given account."""
+              results = {'success': [], 'failed': []}
+              
+              for contact in contacts:
+                  try:
+                      params = {
+                          'AlternateContactType': contact['AlternateContactType'],
+                          'Name': contact['Name'],
+                          'Title': contact['Title'],
+                          'EmailAddress': contact['EmailAddress'],
+                          'PhoneNumber': contact['PhoneNumber']
+                      }
+                      
+                      if account_id != current_account_id:
+                          params['AccountId'] = account_id
+                      
+                      account_client.put_alternate_contact(**params)
+                      results['success'].append(contact['AlternateContactType'])
+                      print(f"✓ Updated {contact['AlternateContactType']} for account {account_id}")
+                      
+                  except botocore.exceptions.ClientError as e:
+                      error_msg = e.response['Error']['Message']
+                      results['failed'].append({
+                          'type': contact['AlternateContactType'],
+                          'error': error_msg
+                      })
+                      print(f"✗ Error updating {contact['AlternateContactType']} for {account_id}: {error_msg}")
+                  except Exception as e:
+                      results['failed'].append({
+                          'type': contact['AlternateContactType'],
+                          'error': str(e)
+                      })
+                      print(f"✗ Unexpected error: {e}")
+              
+              return results
+          
+          def lambda_handler(event, context):
+              """Main Lambda handler."""
+              print("Starting alternate contacts update process...")
+              
+              # Initialize clients
+              sts_client = boto3.client('sts')
+              org_client = boto3.client('organizations')
+              account_client = boto3.client('account', region_name='us-east-1')
+              
+              # Get current account ID
+              current_account_id = sts_client.get_caller_identity()['Account']
+              print(f"Current account (management): {current_account_id}")
+              
+              # Get contact configurations
+              contacts = get_contacts_from_env()
+              
+              # List organization accounts
+              org_accounts = list_org_accounts(org_client)
+              if not org_accounts:
+                  return {
+                      'statusCode': 500,
+                      'body': 'Failed to list organization accounts'
+                  }
+              
+              print(f"Found {len(org_accounts)} accounts")
+              
+              # Update contacts for each account
+              summary = {
+                  'total_accounts': len(org_accounts),
+                  'accounts_processed': 0,
+                  'total_updates': 0,
+                  'total_failures': 0,
+                  'details': []
+              }
+              
+              for account in org_accounts:
+                  account_id = account['Id']
+                  account_name = account['Name']
+                  print(f"\nProcessing account: {account_name} ({account_id})")
+                  
+                  results = update_alternate_contact(
+                      account_client, 
+                      account_id, 
+                      current_account_id,
+                      contacts
+                  )
+                  
+                  summary['accounts_processed'] += 1
+                  summary['total_updates'] += len(results['success'])
+                  summary['total_failures'] += len(results['failed'])
+                  summary['details'].append({
+                      'account_id': account_id,
+                      'account_name': account_name,
+                      'success': results['success'],
+                      'failed': results['failed']
+                  })
+              
+              print(f"\n=== Summary ===")
+              print(f"Accounts processed: {summary['accounts_processed']}/{summary['total_accounts']}")
+              print(f"Successful updates: {summary['total_updates']}")
+              print(f"Failed updates: {summary['total_failures']}")
+              
+              return {
+                  'statusCode': 200,
+                  'body': summary
+              }
+
+  # EventBridge Rule
+  ScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub '${AWS::StackName}-Schedule'
+      Description: 'Schedule for automatic execution of alternate contacts update. Managed by CloudFormation - do not modify directly to avoid configuration drift.'
+      ScheduleExpression: !Ref ScheduleExpression
+      State: ENABLED
+      Targets:
+        - Arn: !GetAtt AlternateContactsFunction.Arn
+          Id: AlternateContactsTarget
+
+  # Permission for EventBridge to invoke Lambda
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AlternateContactsFunction
+      Action: lambda:InvokeFunction
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt ScheduleRule.Arn
+
+  # CloudWatch Log Group
+  LambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AlternateContactsFunction}'
+      RetentionInDays: 30
+      Tags:
+        - Key: ManagedBy
+          Value: CloudFormation
+        - Key: Description
+          Value: 'Managed by CloudFormation - do not modify directly to avoid configuration drift'
+
+Outputs:
+  LambdaFunctionArn:
+    Description: Lambda function ARN
+    Value: !GetAtt AlternateContactsFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaArn'
+  
+  LambdaFunctionName:
+    Description: Lambda function name
+    Value: !Ref AlternateContactsFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-LambdaName'
+  
+  ScheduleRuleArn:
+    Description: EventBridge rule ARN
+    Value: !GetAtt ScheduleRule.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ScheduleArn'
+  
+  ScheduleExpression:
+    Description: Configured schedule expression
+    Value: !Ref ScheduleExpression
+  
+  LogGroupName:
+    Description: CloudWatch Log Group name
+    Value: !Ref LambdaLogGroup
+    Export:
+      Name: !Sub '${AWS::StackName}-LogGroup'
