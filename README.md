@@ -1,247 +1,361 @@
-# Contacts Manager
+# AWS Contacts Manager
 
-### Programmatically manage AWS contacts at the AWS Organizations level
+Programmatically manage AWS contacts at the AWS Organizations level - automate bulk updates for alternate contacts, primary contacts, and root email addresses across all your accounts.
 
-In this repository, we share code for batch management of contacts from your AWS accounts in an [AWS Organizations](https://aws.amazon.com/organizations/).
+---
 
-This solution was developed thanks to these announcements:
-- _Posted on: Jun 07, 2024_ - [Centrally manage member account root email addresses across your AWS Organization](https://aws.amazon.com/about-aws/whats-new/2024/06/manage-member-account-root-email-addresses-aws-organization/)
-- _Posted on: Oct 25, 2022_ - [AWS Organizations console now allows users to centrally manage primary contact information on AWS accounts](https://aws.amazon.com/about-aws/whats-new/2022/10/aws-organizations-console-centrally-manage-primary-contact-information-aws-accounts/)
-- _Posted on: Feb 09, 2022_ - [AWS Organizations console now lets users centrally manage alternate contacts on AWS accounts](https://aws.amazon.com/about-aws/whats-new/2022/02/aws-organizations-console-manage-alternate-contacts/)
+## 🚀 What's New
 
-**Why this solution was created?**
+**Automated Alternate Contacts Update** - Deploy `cfn.yml` to automatically synchronize alternate contacts across all Organization accounts on a schedule (default: every 7 days). [Jump to setup →](#automated-solution)
 
-Keeping your contacts updated in your AWS accounts is important for compliance and ensuring that notifications sent by AWS are being sent to the correct recipients. There are 3 main types of contacts to be registered in an AWS account: primary contacts, alternate contacts and the email address of the account's root user.
+---
 
-Alternate contacts for an AWS account allow AWS to contact up to three additional points of contact associated with the account for billing, operations, and security issues. They are in addition to the primary email address associated with the AWS account (root user email). Ensuring they are up to date and properly configured is part of managing a mature AWS environment.
+## Overview
 
-Customers with large numbers of AWS accounts have the challenge to ensure that these contacts are set correctly and not altered. This solution aims to resolve this with automation for managing these different types of contacts in bulk.
+This solution provides two approaches for managing AWS account contacts at scale:
+
+1. **Interactive Script** (`script.py`) - Manual, on-demand contact management with full control
+2. **CloudFormation Automation** (`cfn.yml`) - Scheduled, hands-off alternate contacts synchronization
+
+### Why Use This Solution?
+
+Managing contacts across multiple AWS accounts is critical for:
+- **Compliance** - Ensure AWS notifications reach the right teams
+- **Security** - Maintain up-to-date security contact information
+- **Operations** - Keep billing and operations contacts current
+- **Governance** - Enforce organizational contact standards
+
+### Contact Types Supported
+
+| Contact Type | Description | Script Support | Automation Support |
+|--------------|-------------|----------------|-------------------|
+| **Alternate Contacts** | Operations, Billing, Security contacts | ✅ List, Update, Delete | ✅ Scheduled Updates |
+| **Primary Contacts** | Main account contact information | ✅ List, Update | ❌ |
+| **Root Email** | Account root user email address | ✅ List, Update | ❌ |
+
+---
+
+## Table of Contents
+
+- [Prerequisites](#prerequisites)
+- [Interactive Script Usage](#interactive-script-usage)
+  - [Setup](#setup)
+  - [Running the Script](#running-the-script)
+  - [Features](#features)
+- [Automated Solution](#automated-solution)
+  - [Architecture](#architecture)
+  - [Deployment](#deployment)
+  - [Benefits](#benefits)
+- [Choosing the Right Approach](#choosing-the-right-approach)
+- [Feedback](#feedback)
+
+---
 
 ## Prerequisites
 
-- Your organization must enable all features to manage settings on your member accounts. This allows admin control over the member accounts. This is set by default when you create your organization. If your organization is set to consolidated billing only, and you want to enable all features, see [Enabling all features in your organization](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html).
-- You need to enable trusted access for AWS Account Management service. To set this up, see [Enabling trusted access for AWS Account Management](https://docs.aws.amazon.com/accounts/latest/reference/using-orgs-trusted-access.html).
-- You need the necessary IAM permissions to run the tool. Please, refer to [IAM Policy file](iam-policy.json).
+Before using either solution, ensure you have:
 
-## Usage
+1. **AWS Organizations with All Features Enabled**
+   - Required for centralized contact management
+   - Default when creating a new organization
+   - [Enable all features →](https://docs.aws.amazon.com/organizations/latest/userguide/orgs_manage_org_support-all-features.html)
 
-> **⚠️ Note:** Make sure you will sign-in at the management account of the AWS Organizations or the delegated administrator member account for AWS Organizations.
+2. **Trusted Access for AWS Account Management**
+   - Allows management account to update member account contacts
+   - [Enable trusted access →](https://docs.aws.amazon.com/accounts/latest/reference/using-orgs-trusted-access.html)
 
-1. Choose where you want to run it (CloudShell or Local terminal):
-    - <details><summary>CloudShell</summary><br>
+3. **IAM Permissions**
+   - Required permissions documented in [`iam-policy.json`](iam-policy.json)
+   - Must be run from management account or delegated administrator
 
-        1. Sign-in to you AWS account.
-        2. Open CloudShell.
+---
 
-            ![img](media/cloudshell.png)
+## Interactive Script Usage
 
-        3. When CloudShell opens, you will run the following command:
-            1. Clone the repository.
+### Setup
 
-                    git clone https://github.com/aws-samples/contacts-manager.git
+Choose your preferred environment:
 
-            2. Make a clean install.
+<details>
+<summary><b>Option 1: AWS CloudShell</b> (Quick start, no local setup)</summary>
 
-                    python3 -m venv .venv
-                    source .venv/bin/activate
+1. Sign in to your AWS management account
+2. Open CloudShell from the AWS Console
 
-            3. Install dependencies.
+   ![CloudShell](media/cloudshell.png)
 
-                    cd contacts-manager
-                    sh -e requirements.txt
-
-    </details>
-
-    - <details><summary>Local terminal (recommended if you will run the Generate contacts report)</summary><br>
-
-        1. Open you local terminal.
-        2. Make sure to have AWS CLI and Python3 installed.
-            -  Checking AWS CLI version ([latest version](https://raw.githubusercontent.com/aws/aws-cli/v2/CHANGELOG.rst)).
-
-                    aws --version
-
-            - Checking Python version
-
-                    python -V
-
-                or
-
-                    python3 -V
-
-        3. Clone the repository.
-
-                git clone https://github.com/aws-samples/contacts-manager.git
-
-        4. Make a clean install.
-
-                python3 -m venv .venv
-                source .venv/bin/activate
-
-        5. Install dependencies.
-
-                cd contacts-manager
-                sh -e requirements.txt
-
-        6. Sign-in to you AWS account in the local terminal.
-            - We recommed to use the credentials from AWS Identity Center (SSO).
-
-                ![img](media/identity-center.png)
-
-            - You can run the following command to check your credentials.
-
-                    aws sts get-caller-identity
-    </details>
-
-2. Run the script.
-
-        python3 script.py
-
-3. The first step is to choose which contact options you want to interact.
-
-    ![img](media/main-menu.png)
-
-- <details><summary>Alternate contacts</summary><br>
-
-    1. When selected, choose one of the 3 action options.
-
-        ![img](/media/alternate-contacts-1.png)
-
-    2. Input a list of AWS account IDs separated by comma, the Organization unit ID or all. For the Delete action, for security reasons, it is only allowed to run one AWS account ID at a time. Below are some input examples:
-
-        - all
-        - 000000000000,111111111111,222222222222,333333333333
-        - 000000000000, 111111111111, 222222222222, 333333333333
-        - ou-a0aa-abcdef0g
-        - 012345678910 _(valid for Delete action)_
-
-    3. Choose which type of alternate contact.
-
-        ![img](/media/alternate-contacts-2.png)
-
-    - List action
-
-        1. For List action, there is the option to export the result to an s3 bucket.
-
-            ![img](/media/alternate-contacts-3.png)
-
-        2. Inputting "y" will ask for the name of an S3 bucket to upload. Inputting "n", the result will return on the CloudShell or local terminal screen.
-
-            ![img](/media/alternate-contacts-4.png)
-
-    - Update action
-
-        1. For Update action, it will be required to fill in all the contact fields, you must pay attention to the right pattern. Below are some input examples:
-
-            - Email: example@mail.com
-            - Name: My Name
-            - Phone number: +5511900002222
-            - Title: Technical Account Manager
-
-                ![img](/media/alternate-contacts-5.png)
-
-    - Delete action
-
-        1. For the Delete action, for security reasons, it is only allowed to run one AWS account ID at a time.
-
-            ![img](/media/alternate-contacts-6.png)
+3. Clone and setup:
+   ```bash
+   git clone https://github.com/aws-samples/contacts-manager.git
+   cd contacts-manager
+   python3 -m venv .venv
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
 </details>
 
-- <details><summary>Primary contacts information</summary><br>
+<details>
+<summary><b>Option 2: Local Terminal</b> (Recommended for report generation)</summary>
 
-    1. When selected, choose one of the 2 action options
+**Requirements:**
+- AWS CLI ([latest version](https://raw.githubusercontent.com/aws/aws-cli/v2/CHANGELOG.rst))
+- Python 3.x
 
-        ![img](/media/primary-contacts-1.png)
+**Verify installations:**
+```bash
+aws --version
+python3 -V
+```
 
-    2. Input a list of AWS account IDs separated by comma, the Organization unit ID or all. For the Delete action, for security reasons, it is only allowed to run one AWS account ID at a time. Below are some input examples:
+**Setup:**
+```bash
+git clone https://github.com/aws-samples/contacts-manager.git
+cd contacts-manager
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-        - all
-        - 000000000000,111111111111,222222222222,333333333333
-        - 000000000000, 111111111111, 222222222222, 333333333333
-        - ou-a0aa-abcdef0g
-        - 012345678910 _(valid for Delete action)_
+**Authenticate:**
+```bash
+# Using AWS Identity Center (recommended)
+aws sso login --profile your-profile
 
-    - List action
+# Verify credentials
+aws sts get-caller-identity
+```
 
-        1. For List action, there is the option to export the result to an s3 bucket.
-
-            ![img](/media/primary-contacts-2.png)
-
-        2. Inputting "y" will ask for the name of an S3 bucket to upload. Inputting "n", the result will return on the CloudShell or local terminal screen.
-
-            ![img](/media/primary-contacts-3.png)
-
-    - Update action
-
-        1. For Update action, it will be required to fill in all the contact fields, you must pay attention to the right pattern.
-
-            ![img](/media/primary-contacts-4.png)
-
-</details>
-
-- <details><summary>Root email addresses</summary><br>
-
-    1. When selected, choose one of the 2 action options
-
-        ![img](/media/root-email-addresses-1.png)
-
-    2. Input a list of AWS account IDs separated by comma, the Organization unit ID or all. For the Delete action, for security reasons, it is only allowed to run one AWS account ID at a time. Below are some input examples:
-
-        - all
-        - 000000000000,111111111111,222222222222,333333333333
-        - 000000000000, 111111111111, 222222222222, 333333333333
-        - ou-a0aa-abcdef0g
-        - 012345678910 _(valid for Delete action)_
-
-    - List action
-
-        1. For List action, there is the option to export the result to an s3 bucket.
-
-            ![img](/media/root-email-addresses-2.png)
-
-        2. Inputting "y" will ask for the name of an S3 bucket to upload. Inputting "n", the result will return on the CloudShell or local terminal screen.
-
-            ![img](/media/root-email-addresses-3.png)
-
-    - Update action
-
-        1. For Update action, it will be required to fill in all the contact fields. A status prefix of "⟳" (pending) and "✔" (done) will be shown to monitor the status of AWS account changes.
-
-            ![img](/media/root-email-addresses-4.png)
-
-        2. When you select an account, you must add the OTP (One-Time Password). This must be done one account at a time.
-
-            ![img](/media/root-email-addresses-5.png)
-
-        3. Once you update the root email address, the status will be changed to "✔" (done). When all statuses are “checked”, the function will be completed.
-
-            ![img](/media/root-email-addresses-6.png)
+![Identity Center](media/identity-center.png)
 
 </details>
 
-- <details><summary>Generate contacts report</summary><br>
+### Running the Script
 
-    - When selected, the tool will generate a report with all contacts from all Organizations accounts.<br> 
-    **Note:** it will take an average of 4s per account.
+```bash
+python3 script.py
+```
 
-        ![img](/media/generate-contacts-report.png)
+The script presents an interactive menu:
+
+![Main Menu](media/main-menu.png)
+
+### Features
+
+<details>
+<summary><b>1. Alternate Contacts</b> - Manage Operations, Billing, and Security contacts</summary>
+
+**Actions:** List, Update, Delete
+
+**Scope Options:**
+- `all` - All Organization accounts
+- `123456789012,234567890123` - Specific account IDs (comma-separated)
+- `ou-xxxx-xxxxxxxx` - All accounts in an OU
+- `123456789012` - Single account (Delete only)
+
+**Contact Types:**
+- Operations
+- Billing  
+- Security
+
+#### List Contacts
+- Export to S3 bucket or display in terminal
+- ![List Alternate Contacts](media/alternate-contacts-3.png)
+
+#### Update Contacts
+- Provide: Name, Title, Email, Phone (international format: +1234567890)
+- ![Update Alternate Contacts](media/alternate-contacts-5.png)
+
+#### Delete Contacts
+- Security restriction: One account at a time
+- ![Delete Alternate Contacts](media/alternate-contacts-6.png)
 
 </details>
 
-4. _[Optional]_ Remove the tool.
+<details>
+<summary><b>2. Primary Contacts</b> - Manage main account contact information</summary>
 
-        cd ..
-        rm aws-contacts-manager
+**Actions:** List, Update
+
+**Scope Options:** Same as Alternate Contacts
+
+#### List Primary Contacts
+- Export to S3 or display in terminal
+- ![List Primary Contacts](media/primary-contacts-2.png)
+
+#### Update Primary Contacts
+- Provide all required contact fields
+- ![Update Primary Contacts](media/primary-contacts-4.png)
+
+</details>
+
+<details>
+<summary><b>3. Root Email Addresses</b> - Update account root user emails</summary>
+
+**Actions:** List, Update
+
+**Scope Options:** Same as Alternate Contacts
+
+#### List Root Emails
+- Export to S3 or display in terminal
+- ![List Root Emails](media/root-email-addresses-2.png)
+
+#### Update Root Emails
+- Requires OTP (One-Time Password) for each account
+- Status indicators: ⟳ (pending) → ✔ (done)
+- ![Update Root Emails](media/root-email-addresses-4.png)
+- ![OTP Entry](media/root-email-addresses-5.png)
+
+</details>
+
+<details>
+<summary><b>4. Generate Contacts Report</b> - Export all contacts to Excel</summary>
+
+- Generates comprehensive report with all contact types
+- Exports to Excel format
+- **Performance:** ~4 seconds per account
+
+![Generate Report](media/generate-contacts-report.png)
+
+</details>
+
+---
+
+## Automated Solution
+
+For organizations requiring consistent alternate contacts across all accounts without manual intervention.
+
+### Architecture
+
+The CloudFormation template (`cfn.yml`) deploys a serverless automation solution:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│                        CloudFormation Stack                            │
+│                                                                        │
+│  ┌──────────────────┐         ┌─────────────────────────────────────┐  │
+│  │   EventBridge    │         │         Lambda Function             │  │
+│  │    Scheduler     │────────▶│   Update Contacts (Python 3.12)     │  │
+│  │  (rate: 7 days)  │         │                                     │  │
+│  └──────────────────┘         │  • List all Organization accounts   │  │
+│                               │  • Update alternate contacts        │  │
+│  ┌──────────────────┐         │  • Handle errors gracefully         │  │
+│  │    IAM Role      │────────▶│                                     │  │
+│  │  (Permissions)   │         └──────────────┬──────────────────────┘  │
+│  └──────────────────┘                        │                         │
+│                                              │                         │
+│  ┌──────────────────┐                        │                         │
+│  │  CloudWatch Logs │◀───────────────────────┘                         │
+│  │  (30-day retain) │                                                  │
+│  └──────────────────┘                                                  │
+└──────────────────────────────────────┬─────────────────────────────────┘
+                                       │
+                                       ▼
+                        ┌──────────────────────────┐
+                        │   AWS Organizations API   │
+                        └──────────────┬────────────┘
+                                       │
+                ┌──────────────────────┼──────────────────────┐
+                ▼                      ▼                      ▼
+        ┌──────────────┐      ┌──────────────┐      ┌──────────────┐
+        │  Account 1   │      │  Account 2   │      │  Account N   │
+        │              │      │              │      │              │
+        │ ✓ Operations │      │ ✓ Operations │      │ ✓ Operations │
+        │ ✓ Billing    │      │ ✓ Billing    │      │ ✓ Billing    │
+        │ ✓ Security   │      │ ✓ Security   │      │ ✓ Security   │
+        └──────────────┘      └──────────────┘      └──────────────┘
+```
+
+**Components:**
+
+| Component | Purpose |
+|-----------|---------|
+| **Lambda Function** | Python 3.12 function that updates
+
+### Deployment
+
+1. **Navigate to CloudFormation** in your AWS management account
+
+2. **Create Stack** with `cfn.yml`
+
+3. **Configure Parameters:**
+
+   | Parameter | Description | Example |
+   |-----------|-------------|---------|
+   | Operations Name/Title/Email/Phone | Operations team contact | `ops@example.com` |
+   | Billing Name/Title/Email/Phone | Billing team contact | `billing@example.com` |
+   | Security Name/Title/Email/Phone | Security team contact | `security@example.com` |
+   | Schedule Expression | Execution frequency | `rate(7 days)` or `cron(0 12 * * ? *)` |
+
+4. **Deploy** and monitor in CloudWatch Logs
+
+### Benefits
+
+- ✅ **Consistency** - All accounts maintain identical contact information
+- ✅ **Compliance** - Automated enforcement of contact standards
+- ✅ **Zero Maintenance** - No manual intervention after deployment
+- ✅ **Audit Trail** - Complete execution history in CloudWatch
+- ✅ **Flexibility** - Update contacts by modifying stack parameters
+- ✅ **Error Handling** - Graceful failure handling with detailed summaries
+
+---
+
+## Choosing the Right Approach
+
+### Use the Interactive Script (`script.py`) when:
+- ✅ Performing one-time bulk updates
+- ✅ Managing primary contacts or root email addresses
+- ✅ Generating comprehensive contact reports
+- ✅ Testing contact changes before automation
+- ✅ Need ad-hoc operations with full control
+
+### Use the CloudFormation Automation (`cfn.yml`) when:
+- ✅ Enforcing consistent alternate contacts organization-wide
+- ✅ Need hands-off recurring synchronization
+- ✅ Want to ensure new accounts automatically receive correct contacts
+- ✅ Require audit trail and compliance documentation
+- ✅ Prefer infrastructure-as-code approach
+
+**Pro Tip:** Use both! Deploy automation for alternate contacts, and use the script for primary contacts, root emails, and reporting.
+
+---
+
+## Cleanup
+
+To remove the interactive script:
+```bash
+cd ..
+rm -rf contacts-manager
+```
+
+To remove the CloudFormation automation:
+```bash
+aws cloudformation delete-stack --stack-name <your-stack-name>
+```
+
+---
 
 ## Feedback
 
-Feedback is always welcome! Please, share you experience, thoughts, feature request: [Feedback Survey](https://pulse.aws/survey/LLA8GORD).
+We value your input! Share your experience, suggestions, or feature requests:
+
+📋 [Feedback Survey](https://pulse.aws/survey/LLA8GORD)
+
+---
+
+## Related AWS Announcements
+
+This solution leverages these AWS features:
+- [Centrally manage member account root email addresses](https://aws.amazon.com/about-aws/whats-new/2024/06/manage-member-account-root-email-addresses-aws-organization/) (Jun 2024)
+- [Centrally manage primary contact information](https://aws.amazon.com/about-aws/whats-new/2022/10/aws-organizations-console-centrally-manage-primary-contact-information-aws-accounts/) (Oct 2022)
+- [Centrally manage alternate contacts](https://aws.amazon.com/about-aws/whats-new/2022/02/aws-organizations-console-manage-alternate-contacts/) (Feb 2022)
+
+---
 
 ## Security
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for security issue notifications.
 
 ## License
 
-This library is licensed under the MIT-0 License. See the LICENSE file.
-
+This library is licensed under the MIT-0 License. See the [LICENSE](LICENSE) file.
