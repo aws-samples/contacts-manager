@@ -6,7 +6,7 @@ Programmatically manage AWS contacts at the AWS Organizations level - automate b
 
 ## 🚀 What's New
 
-**Automated Alternate Contacts Update** - Deploy `cfn.yml` to automatically synchronize alternate contacts across all Organization accounts on a schedule (default: every 7 days). [Jump to setup →](#automated-solution)
+**Automated Alternate Contacts Update** - Deploy `cfn.yml` to automatically synchronize alternate contacts across your Organization accounts on a schedule (default: every 7 days). Now with the option to target linked accounts only or all accounts including the management/payer account. [Jump to setup →](#automated-solution)
 
 ---
 
@@ -238,9 +238,9 @@ The CloudFormation template (`cfn.yml`) deploys a serverless automation solution
 │  │    Scheduler     │────────▶│   Update Contacts (Python 3.12)     │  │
 │  │  (rate: 7 days)  │         │                                     │  │
 │  └──────────────────┘         │  • List all Organization accounts   │  │
-│                               │  • Update alternate contacts        │  │
-│  ┌──────────────────┐         │  • Handle errors gracefully         │  │
-│  │    IAM Role      │────────▶│                                     │  │
+│                               │  • Filter by LinkedAccountsOnly     │  │
+│  ┌──────────────────┐         │  • Update alternate contacts        │  │
+│  │    IAM Role      │────────▶│  • Handle errors gracefully         │  │
 │  │  (Permissions)   │         └──────────────┬──────────────────────┘  │
 │  └──────────────────┘                        │                         │
 │                                              │                         │
@@ -280,12 +280,37 @@ The CloudFormation template (`cfn.yml`) deploys a serverless automation solution
 
 3. **Configure Parameters:**
 
+   The console groups parameters into friendly sections for easier input:
+
+   **Operations Contact**
    | Parameter | Description | Example |
    |-----------|-------------|---------|
-   | Operations Name/Title/Email/Phone | Operations team contact | `ops@example.com` |
-   | Billing Name/Title/Email/Phone | Billing team contact | `billing@example.com` |
-   | Security Name/Title/Email/Phone | Security team contact | `security@example.com` |
-   | Schedule Expression | Execution frequency | `rate(7 days)` or `cron(0 12 * * ? *)` |
+   | Operations Contact Name | Operations team name | `Operations Team` |
+   | Operations Contact Title | Operations team title | `Cloud Operations` |
+   | Operations Contact Email | Operations team email | `ops@example.com` |
+   | Operations Contact Phone | Phone in international format | `+12025551234` |
+
+   **Billing Contact**
+   | Parameter | Description | Example |
+   |-----------|-------------|---------|
+   | Billing Contact Name | Billing team name | `Billing Team` |
+   | Billing Contact Title | Billing team title | `Finance & Billing` |
+   | Billing Contact Email | Billing team email | `billing@example.com` |
+   | Billing Contact Phone | Phone in international format | `+12025551234` |
+
+   **Security Contact**
+   | Parameter | Description | Example |
+   |-----------|-------------|---------|
+   | Security Contact Name | Security team name | `Security Team` |
+   | Security Contact Title | Security team title | `Information Security` |
+   | Security Contact Email | Security team email | `security@example.com` |
+   | Security Contact Phone | Phone in international format | `+12025551234` |
+
+   **Execution Settings**
+   | Parameter | Description | Default |
+   |-----------|-------------|---------|
+   | Update Linked Accounts Only? | `True` = skip management/payer account; `False` = update all accounts | `True` |
+   | Execution Schedule | Rate or cron expression | `rate(7 days)` |
 
 4. **Deploy** and monitor in CloudWatch Logs
 
@@ -295,7 +320,8 @@ The CloudFormation template (`cfn.yml`) deploys a serverless automation solution
 - ✅ **Compliance** - Automated enforcement of contact standards
 - ✅ **Zero Maintenance** - No manual intervention after deployment
 - ✅ **Audit Trail** - Complete execution history in CloudWatch
-- ✅ **Flexibility** - Update contacts by modifying stack parameters
+- ✅ **Flexibility** - Update contacts by modifying stack parameters; choose to target linked accounts only or all accounts
+- ✅ **Scope Control** - Include or exclude the management/payer account via a single toggle
 - ✅ **Error Handling** - Graceful failure handling with detailed summaries
 
 ---
