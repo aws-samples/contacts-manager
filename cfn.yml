@@ -1,6 +1,65 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: 'Automation for updating alternate contacts across AWS Organization accounts'
 
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: "Operations Contact"
+        Parameters:
+          - OperationsName
+          - OperationsTitle
+          - OperationsEmail
+          - OperationsPhone
+      - Label:
+          default: "Billing Contact"
+        Parameters:
+          - BillingName
+          - BillingTitle
+          - BillingEmail
+          - BillingPhone
+      - Label:
+          default: "Security Contact"
+        Parameters:
+          - SecurityName
+          - SecurityTitle
+          - SecurityEmail
+          - SecurityPhone
+      - Label:
+          default: "Execution Settings"
+        Parameters:
+          - LinkedAccountsOnly
+          - ScheduleExpression
+    ParameterLabels:
+      OperationsName:
+        default: "Operations Contact Name"
+      OperationsTitle:
+        default: "Operations Contact Title"
+      OperationsEmail:
+        default: "Operations Contact Email"
+      OperationsPhone:
+        default: "Operations Contact Phone"
+      BillingName:
+        default: "Billing Contact Name"
+      BillingTitle:
+        default: "Billing Contact Title"
+      BillingEmail:
+        default: "Billing Contact Email"
+      BillingPhone:
+        default: "Billing Contact Phone"
+      SecurityName:
+        default: "Security Contact Name"
+      SecurityTitle:
+        default: "Security Contact Title"
+      SecurityEmail:
+        default: "Security Contact Email"
+      SecurityPhone:
+        default: "Security Contact Phone"
+      LinkedAccountsOnly:
+        default: "Update Linked Accounts Only?"
+      ScheduleExpression:
+        default: "Execution Schedule"
+
 Parameters:
   # Operations Contact
   OperationsName:
@@ -71,6 +130,15 @@ Parameters:
     AllowedPattern: '^\+[1-9][0-9]{7,14}$'
     ConstraintDescription: 'Must be in international format: + followed by country code and 7-14 digits with no spaces or special characters (e.g., +447911123456)'
   
+  # Linked Accounts Only
+  LinkedAccountsOnly:
+    Type: String
+    Description: 'If True, update alternate contacts only for linked (member) accounts, skipping the management/payer account. If False, update all accounts including the management account.'
+    Default: 'False'
+    AllowedValues:
+      - 'True'
+      - 'False'
+
   # Schedule Configuration
   ScheduleExpression:
     Type: String
@@ -140,6 +208,7 @@ Resources:
           SECURITY_TITLE: !Ref SecurityTitle
           SECURITY_EMAIL: !Ref SecurityEmail
           SECURITY_PHONE: !Ref SecurityPhone
+          LINKED_ACCOUNTS_ONLY: !Ref LinkedAccountsOnly
       Code:
         ZipFile: |
           import boto3
@@ -247,7 +316,13 @@ Resources:
                       'body': 'Failed to list organization accounts'
                   }
               
-              print(f"Found {len(org_accounts)} accounts")
+              # Filter out management account if LinkedAccountsOnly is enabled
+              linked_only = os.environ.get('LINKED_ACCOUNTS_ONLY', 'True') == 'True'
+              if linked_only:
+                  org_accounts = [a for a in org_accounts if a['Id'] != current_account_id]
+                  print(f"LinkedAccountsOnly=True — processing {len(org_accounts)} linked accounts (skipping management {current_account_id})")
+              else:
+                  print(f"LinkedAccountsOnly=False — processing all {len(org_accounts)} accounts")
               
               # Update contacts for each account
               summary = {
